@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Ledger — Daily Wisdom</title>
+<!-- config.js is loaded first so CONFIG.GROQ_API_KEY is available -->
+<script src="config.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400;1,600&family=Crimson+Pro:ital,wght@0,200;0,300;1,200&family=DM+Sans:wght@300;400&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0c0b09;
+    --surface: #131210;
+    --border: rgba(210, 185, 130, 0.15);
+    --gold: #c9a84c;
+    --gold-light: #e8cc85;
+    --cream: #f0e8d8;
+    --muted: rgba(240, 232, 216, 0.45);
+    --very-muted: rgba(240, 232, 216, 0.2);
+    --accent-line: rgba(201, 168, 76, 0.4);
+  }
+
+  html, body {
+    min-height: 100vh;
+    background: var(--bg);
+    color: var(--cream);
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 300;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 1000;
+    opacity: 0.5;
+  }
+
+  .container {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 0 32px;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 36px 0 32px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .masthead {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 13px;
+    font-weight: 300;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--gold);
+  }
+
+  .date-display {
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--very-muted);
+  }
+
+  main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 60px 0 40px;
+  }
+
+  .quote-card {
+    position: relative;
+    opacity: 0;
+    transform: translateY(16px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+  }
+  .quote-card.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .quote-ornament {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 120px;
+    line-height: 0.6;
+    color: var(--gold);
+    opacity: 0.18;
+    position: absolute;
+    top: -12px;
+    left: -14px;
+    user-select: none;
+    pointer-events: none;
+  }
+
+  .quote-text {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(26px, 4vw, 42px);
+    font-weight: 300;
+    font-style: italic;
+    line-height: 1.45;
+    color: var(--cream);
+    padding-left: 24px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .quote-attribution {
+    margin-top: 28px;
+    padding-left: 24px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .attribution-line {
+    width: 32px;
+    height: 1px;
+    background: var(--gold);
+    opacity: 0.6;
+  }
+
+  .quote-author {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 13px;
+    font-weight: 400;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--gold-light);
+  }
+
+  .divider {
+    margin: 44px 0 36px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .divider::before, .divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+  .divider-diamond {
+    width: 6px;
+    height: 6px;
+    background: var(--gold);
+    transform: rotate(45deg);
+    opacity: 0.5;
+    flex-shrink: 0;
+  }
+
+  .memo-section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    padding: 32px 36px 28px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .memo-section::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: linear-gradient(to bottom, var(--gold), transparent);
+    opacity: 0.5;
+  }
+
+  .memo-label {
+    font-size: 10px;
+    letter-spacing: 0.35em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 20px;
+    opacity: 0.8;
+  }
+
+  .memo-loading {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--very-muted);
+    font-size: 13px;
+    letter-spacing: 0.05em;
+  }
+
+  .dots { display: flex; gap: 4px; }
+  .dot {
+    width: 3px;
+    height: 3px;
+    border-radius: 50%;
+    background: var(--gold);
+    opacity: 0.5;
+    animation: pulse 1.4s ease-in-out infinite;
+  }
+  .dot:nth-child(2) { animation-delay: 0.2s; }
+  .dot:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes pulse {
+    0%, 80%, 100% { opacity: 0.2; transform: scale(0.8); }
+    40% { opacity: 0.8; transform: scale(1); }
+  }
+
+  .memo-content { display: none; }
+  .memo-content.visible {
+    display: block;
+    animation: fadeIn 0.5s ease;
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .memo-block { margin-bottom: 20px; }
+  .memo-block:last-child { margin-bottom: 0; }
+
+  .memo-block-title {
+    font-size: 9px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--gold);
+    opacity: 0.65;
+    margin-bottom: 8px;
+  }
+
+  .memo-block-text {
+    font-family: 'Crimson Pro', serif;
+    font-size: 17px;
+    line-height: 1.65;
+    color: rgba(240, 232, 216, 0.75);
+    font-weight: 200;
+  }
+
+  .memo-block-text ul { list-style: none; padding: 0; }
+  .memo-block-text ul li {
+    padding: 5px 0 5px 16px;
+    position: relative;
+    border-bottom: 1px solid rgba(201, 168, 76, 0.08);
+  }
+  .memo-block-text ul li:last-child { border-bottom: none; }
+  .memo-block-text ul li::before {
+    content: '—';
+    position: absolute;
+    left: 0;
+    color: var(--gold);
+    opacity: 0.4;
+    font-size: 14px;
+  }
+
+  /* Config warning banner */
+  .config-warning {
+    background: rgba(180, 80, 60, 0.12);
+    border: 1px solid rgba(180, 80, 60, 0.3);
+    border-radius: 2px;
+    padding: 14px 20px;
+    margin-bottom: 24px;
+    font-size: 13px;
+    color: rgba(240, 180, 160, 0.85);
+    line-height: 1.6;
+    display: none;
+  }
+  .config-warning code {
+    background: rgba(255,255,255,0.08);
+    padding: 1px 5px;
+    border-radius: 2px;
+    font-size: 12px;
+  }
+
+  footer {
+    padding: 32px 0 40px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid var(--border);
+  }
+
+  .counter {
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    color: var(--very-muted);
+  }
+
+  .next-btn {
+    background: transparent;
+    border: 1px solid rgba(201, 168, 76, 0.35);
+    color: var(--gold-light);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 11px;
+    font-weight: 400;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    padding: 12px 28px;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    position: relative;
+    overflow: hidden;
+  }
+  .next-btn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(201, 168, 76, 0.06);
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+  }
+  .next-btn:hover::before { transform: translateX(0); }
+  .next-btn:hover {
+    border-color: rgba(201, 168, 76, 0.65);
+    color: var(--gold);
+  }
+  .next-btn:active { transform: scale(0.98); }
+  .next-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .error-text {
+    font-size: 13px;
+    color: rgba(220, 100, 80, 0.75);
+    font-style: italic;
+    margin-top: 8px;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <div class="masthead">The Ledger</div>
+    <div class="date-display" id="dateDisplay"></div>
+  </header>
+
+  <main>
+    <div class="config-warning" id="configWarning">
+      ⚠ No API key found. Copy <code>config.example.js</code> to <code>config.js</code> and add your Groq key from <strong>console.groq.com</strong>. Memos will not load until this is set.
+    </div>
+
+    <div class="quote-card" id="quoteCard">
+      <div class="quote-ornament">"</div>
+      <div class="quote-text" id="quoteText"></div>
+      <div class="quote-attribution">
+        <div class="attribution-line"></div>
+        <div class="quote-author" id="quoteAuthor"></div>
+      </div>
+    </div>
+
+    <div class="divider">
+      <div class="divider-diamond"></div>
+    </div>
+
+    <div class="memo-section">
+      <div class="memo-label">Analyst Memo</div>
+      <div class="memo-loading" id="memoLoading">
+        <span>Generating context</span>
+        <div class="dots">
+          <div class="dot"></div>
+          <div class="dot"></div>
+          <div class="dot"></div>
+        </div>
+      </div>
+      <div class="memo-content" id="memoContent"></div>
+    </div>
+  </main>
+
+  <footer>
+    <div class="counter" id="counterDisplay"></div>
+    <button class="next-btn" id="nextBtn">Next Quote →</button>
+  </footer>
+</div>
+
+<script>
+// ─── QUOTES ──────────────────────────────────────────────────────────────────
+// Quotes are loaded from quotes.md at runtime
+let QUOTES = [];
+
+async function loadQuotes() {
+  const response = await fetch('quotes.md');
+  const text = await response.text();
+  const quotes = [];
+  let id = 1;
+  let currentAuthor = null;
+  for (const line of text.split('\n')) {
+    const authorMatch = line.match(/^## (.+)/);
+    if (authorMatch) {
+      currentAuthor = authorMatch[1].trim();
+    } else if (line.startsWith('- ') && currentAuthor) {
+      const quoteText = line.slice(2).trim();
+      if (quoteText) {
+        quotes.push({ id: id++, author: currentAuthor, text: quoteText });
+      }
+    }
+  }
+  return quotes;
+}
+
+// ─── SEQUENCE BUILDER ────────────────────────────────────────────────────────
+function buildSequence(lastAuthor) {
+  const pool = [...QUOTES];
+  const result = [];
+  let prev = lastAuthor || null;
+
+  while (pool.length > 0) {
+    const candidates = pool.filter(q => q.author !== prev);
+    const pick = candidates.length > 0
+      ? candidates[Math.floor(Math.random() * candidates.length)]
+      : pool[0];
+    pool.splice(pool.indexOf(pick), 1);
+    result.push(pick);
+    prev = pick.author;
+  }
+  return result;
+}
+
+function getOrBuildSequence() {
+  const key = `tl_seq_${new Date().getFullYear()}`;
+  try {
+    const stored = JSON.parse(localStorage.getItem(key));
+    if (stored && Array.isArray(stored)) return stored;
+  } catch(e) {}
+  let lastAuthor = null;
+  try { lastAuthor = localStorage.getItem('tl_lastAuthor'); } catch(e) {}
+  const seq = buildSequence(lastAuthor).map(q => q.id);
+  try { localStorage.setItem(key, JSON.stringify(seq)); } catch(e) {}
+  return seq;
+}
+
+function getQuoteAtPosition(pos) {
+  const seq = getOrBuildSequence();
+  const id = seq[pos % seq.length];
+  return QUOTES.find(q => q.id === id) || QUOTES[pos % QUOTES.length];
+}
+
+// ─── STATE ───────────────────────────────────────────────────────────────────
+let currentIndex = 0;
+let isLoading = false;
+
+// ─── GROQ API ─────────────────────────────────────────────────────────────────
+async function generateMemo(quote) {
+  // CONFIG is loaded from config.js
+  const apiKey = (typeof CONFIG !== 'undefined' && CONFIG.GROQ_API_KEY !== 'YOUR_GROQ_KEY_HERE')
+    ? CONFIG.GROQ_API_KEY
+    : null;
+
+  if (!apiKey) {
+    document.getElementById('configWarning').style.display = 'block';
+    throw new Error('No API key configured');
+  }
+
+  const prompt = `You are a seasoned equity research analyst and student of history. For the following quote, write a tight analyst memo with three sections. Respond ONLY with valid JSON — no preamble, no markdown fences.
+
+Quote: "${quote.text}"
+Author: ${quote.author}
+
+JSON format (all values are plain text strings, NO markdown):
+{
+  "context": "2-3 sentences of historical context about who said this, when, and why it matters. Include a specific year or era if relevant.",
+  "reflection": "2-3 sentences connecting this quote directly to investing, capital allocation, or portfolio management. Be specific and practical.",
+  "questions": ["A focused investing question this quote raises", "A second question that challenges conventional practice"]
+}`;
+
+  const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${apiKey}`
+    },
+    body: JSON.stringify({
+      model: "llama-3.3-70b-versatile",
+      max_tokens: 500,
+      messages: [{ role: "user", content: prompt }]
+    })
+  });
+
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}));
+    throw new Error(err.error?.message || `HTTP ${response.status}`);
+  }
+
+  const data = await response.json();
+  const text = data.choices?.[0]?.message?.content || '';
+  const clean = text.replace(/```json|```/g, '').trim();
+  return JSON.parse(clean);
+}
+
+// ─── RENDER ──────────────────────────────────────────────────────────────────
+function renderMemo(memo) {
+  const content = document.getElementById('memoContent');
+  content.innerHTML = `
+    <div class="memo-block">
+      <div class="memo-block-title">Historical Context</div>
+      <div class="memo-block-text">${memo.context}</div>
+    </div>
+    <div class="memo-block">
+      <div class="memo-block-title">Investing Reflection</div>
+      <div class="memo-block-text">${memo.reflection}</div>
+    </div>
+    <div class="memo-block">
+      <div class="memo-block-title">Questions to Sit With</div>
+      <div class="memo-block-text"><ul>
+        ${memo.questions.map(q => `<li>${q}</li>`).join('')}
+      </ul></div>
+    </div>
+  `;
+  document.getElementById('memoLoading').style.display = 'none';
+  content.classList.add('visible');
+}
+
+async function showQuote(quote, pos) {
+  const card = document.getElementById('quoteCard');
+  const btn = document.getElementById('nextBtn');
+  const memoContent = document.getElementById('memoContent');
+  const memoLoading = document.getElementById('memoLoading');
+
+  card.classList.remove('visible');
+  await new Promise(r => setTimeout(r, 300));
+
+  document.getElementById('quoteText').textContent = quote.text;
+  document.getElementById('quoteAuthor').textContent = quote.author;
+  document.getElementById('counterDisplay').textContent = `${pos + 1} of ${QUOTES.length}`;
+
+  memoContent.classList.remove('visible');
+  memoContent.innerHTML = '';
+  memoLoading.style.display = 'flex';
+
+  card.classList.add('visible');
+  try { localStorage.setItem('tl_lastAuthor', quote.author); } catch(e) {}
+
+  // Check cache
+  const cacheKey = `tl_memo_${quote.id}`;
+  let cached;
+  try { cached = JSON.parse(localStorage.getItem(cacheKey)); } catch(e) {}
+  if (cached) {
+    await new Promise(r => setTimeout(r, 200));
+    renderMemo(cached);
+    btn.disabled = false;
+    isLoading = false;
+    return;
+  }
+
+  try {
+    const memo = await generateMemo(quote);
+    try { localStorage.setItem(cacheKey, JSON.stringify(memo)); } catch(e) {}
+    renderMemo(memo);
+  } catch(err) {
+    memoLoading.style.display = 'none';
+    memoContent.innerHTML = `<div class="error-text">${err.message.includes('No API key') ? 'Add your Groq key to config.js to enable memos.' : `API error: ${err.message}`}</div>`;
+    memoContent.classList.add('visible');
+  }
+
+  btn.disabled = false;
+  isLoading = false;
+}
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', async () => {
+  const now = new Date();
+  document.getElementById('dateDisplay').textContent =
+    now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+
+  // Check for missing config
+  if (typeof CONFIG === 'undefined' || CONFIG.GROQ_API_KEY === 'YOUR_GROQ_KEY_HERE') {
+    document.getElementById('configWarning').style.display = 'block';
+  }
+
+  // Load quotes from quotes.md
+  try {
+    QUOTES = await loadQuotes();
+  } catch(e) {
+    console.error('Failed to load quotes.md:', e);
+  }
+
+  // Restore session position
+  try {
+    const saved = parseInt(sessionStorage.getItem('tl_pos'));
+    if (!isNaN(saved)) currentIndex = saved;
+  } catch(e) {}
+
+  showQuote(getQuoteAtPosition(currentIndex), currentIndex);
+
+  document.getElementById('nextBtn').addEventListener('click', () => {
+    if (isLoading) return;
+    isLoading = true;
+    document.getElementById('nextBtn').disabled = true;
+    currentIndex++;
+    try { sessionStorage.setItem('tl_pos', currentIndex); } catch(e) {}
+    showQuote(getQuoteAtPosition(currentIndex), currentIndex);
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' && !isLoading) {
+      document.getElementById('nextBtn').click();
+    }
+  });
+});
+</script>
+</body>
+</html>
