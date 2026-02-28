@@ -560,21 +560,36 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   showQuote(getQuoteAtPosition(currentIndex), currentIndex);
 
-  document.getElementById('nextBtn').addEventListener('click', () => {
-    if (isLoading) return;
-    isLoading = true;
-    document.getElementById('nextBtn').disabled = true;
-    currentIndex++;
-    try { sessionStorage.setItem('tl_pos', currentIndex); } catch(e) {}
-    showQuote(getQuoteAtPosition(currentIndex), currentIndex);
-  });
+  document.getElementById('nextBtn').addEventListener('click', () => advance(1));
 
   document.addEventListener('keydown', (e) => {
-    if (e.key === 'ArrowRight' && !isLoading) {
-      document.getElementById('nextBtn').click();
-    }
+    if (e.key === 'ArrowRight' && !isLoading) advance(1);
+    if (e.key === 'ArrowLeft' && !isLoading) advance(-1);
   });
+
+  // ─── SWIPE ───────────────────────────────────────────────────────────────────
+  let touchStartX = null;
+  document.addEventListener('touchstart', (e) => {
+    touchStartX = e.changedTouches[0].clientX;
+  }, { passive: true });
+  document.addEventListener('touchend', (e) => {
+    if (touchStartX === null || isLoading) return;
+    const delta = touchStartX - e.changedTouches[0].clientX;
+    if (Math.abs(delta) > 50) advance(delta > 0 ? 1 : -1);
+    touchStartX = null;
+  }, { passive: true });
 });
+
+function advance(dir) {
+  if (isLoading) return;
+  const next = currentIndex + dir;
+  if (next < 0) return;
+  isLoading = true;
+  document.getElementById('nextBtn').disabled = true;
+  currentIndex = next;
+  try { sessionStorage.setItem('tl_pos', currentIndex); } catch(e) {}
+  showQuote(getQuoteAtPosition(currentIndex), currentIndex);
+}
 </script>
 </body>
 </html>
