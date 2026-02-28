@@ -4,8 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>The Ledger — Daily Wisdom</title>
-<!-- config.js is loaded first so CONFIG.GROQ_API_KEY is available -->
-<script src="config.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400;1,600&family=Crimson+Pro:ital,wght@0,200;0,300;1,200&family=DM+Sans:wght@300;400&display=swap" rel="stylesheet">
@@ -448,52 +446,20 @@ function getQuoteAtPosition(pos) {
 let currentIndex = 0;
 let isLoading = false;
 
-// ─── GROQ API ─────────────────────────────────────────────────────────────────
+// ─── GROQ API (proxied via /api/memo) ─────────────────────────────────────────
 async function generateMemo(quote) {
-  // CONFIG is loaded from config.js
-  const apiKey = (typeof CONFIG !== 'undefined' && CONFIG.GROQ_API_KEY !== 'YOUR_GROQ_KEY_HERE')
-    ? CONFIG.GROQ_API_KEY
-    : null;
-
-  if (!apiKey) {
-    document.getElementById('configWarning').style.display = 'block';
-    throw new Error('No API key configured');
-  }
-
-  const prompt = `You are a seasoned equity research analyst and student of history. For the following quote, write a tight analyst memo with three sections. Respond ONLY with valid JSON — no preamble, no markdown fences.
-
-Quote: "${quote.text}"
-Author: ${quote.author}
-
-JSON format (all values are plain text strings, NO markdown):
-{
-  "context": "2-3 sentences of historical context about who said this, when, and why it matters. Include a specific year or era if relevant.",
-  "reflection": "2-3 sentences connecting this quote directly to investing, capital allocation, or portfolio management. Be specific and practical.",
-  "questions": ["A focused investing question this quote raises", "A second question that challenges conventional practice"]
-}`;
-
-  const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization": `Bearer ${apiKey}`
-    },
-    body: JSON.stringify({
-      model: "llama-3.3-70b-versatile",
-      max_tokens: 500,
-      messages: [{ role: "user", content: prompt }]
-    })
+  const response = await fetch('/api/memo', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ quote }),
   });
 
   if (!response.ok) {
     const err = await response.json().catch(() => ({}));
-    throw new Error(err.error?.message || `HTTP ${response.status}`);
+    throw new Error(err.error || `HTTP ${response.status}`);
   }
 
-  const data = await response.json();
-  const text = data.choices?.[0]?.message?.content || '';
-  const clean = text.replace(/```json|```/g, '').trim();
-  return JSON.parse(clean);
+  return response.json();
 }
 
 // ─── RENDER ──────────────────────────────────────────────────────────────────
@@ -570,11 +536,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   const now = new Date();
   document.getElementById('dateDisplay').textContent =
     now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-
-  // Check for missing config
-  if (typeof CONFIG === 'undefined' || CONFIG.GROQ_API_KEY === 'YOUR_GROQ_KEY_HERE') {
-    document.getElementById('configWarning').style.display = 'block';
-  }
 
   // Load quotes from quotes.md
   try {
