@@ -425,3 +425,8 @@
 - Wisdom and money can get you almost anything, but only wisdom can save your life.
 - Cast your bread upon the waters.
 - Better is a handful of quietness than two hands full of toil.
+
+## Phil Knight
+- Belief is irresistible.
+- When you see only problems, you're not seeing clearly.
+- If you bet on people the world has overlooked, they'll spend their lives proving you right
