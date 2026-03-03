@@ -552,9 +552,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     console.error('Failed to load quotes.md:', e);
   }
 
-  // Restore session position
+  // Restore position across sessions
   try {
-    const saved = parseInt(sessionStorage.getItem('tl_pos'));
+    const saved = parseInt(localStorage.getItem('tl_pos'));
     if (!isNaN(saved)) currentIndex = saved;
   } catch(e) {}
 
@@ -587,7 +587,7 @@ function advance(dir) {
   isLoading = true;
   document.getElementById('nextBtn').disabled = true;
   currentIndex = next;
-  try { sessionStorage.setItem('tl_pos', currentIndex); } catch(e) {}
+  try { localStorage.setItem('tl_pos', currentIndex); } catch(e) {}
   showQuote(getQuoteAtPosition(currentIndex), currentIndex);
 }
 </script>
