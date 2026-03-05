@@ -568,15 +568,44 @@ document.addEventListener('DOMContentLoaded', async () => {
   });
 
   // ─── SWIPE ───────────────────────────────────────────────────────────────────
-  let touchStartX = null;
+  let touchStartX = null, touchStartY = null, touchLastY = null, pullBeyondBottom = 0;
+
   document.addEventListener('touchstart', (e) => {
-    touchStartX = e.changedTouches[0].clientX;
+    const t = e.changedTouches[0];
+    touchStartX = t.clientX;
+    touchStartY = t.clientY;
+    touchLastY = t.clientY;
+    pullBeyondBottom = 0;
   }, { passive: true });
+
+  document.addEventListener('touchmove', (e) => {
+    if (touchLastY === null) return;
+    const t = e.changedTouches[0];
+    const dy = touchLastY - t.clientY; // positive = finger moving up
+    touchLastY = t.clientY;
+    const atBottom = window.innerHeight + window.scrollY >= document.body.scrollHeight - 5;
+    if (atBottom && dy > 0) pullBeyondBottom += dy;
+    else if (!atBottom) pullBeyondBottom = 0;
+  }, { passive: true });
+
   document.addEventListener('touchend', (e) => {
-    if (touchStartX === null || isLoading) return;
-    const delta = touchStartX - e.changedTouches[0].clientX;
-    if (Math.abs(delta) > 50) advance(delta > 0 ? 1 : -1);
-    touchStartX = null;
+    if (touchStartX === null || isLoading) {
+      touchStartX = touchStartY = touchLastY = null; pullBeyondBottom = 0; return;
+    }
+    const t = e.changedTouches[0];
+    const dx = t.clientX - touchStartX;
+    const dy = t.clientY - touchStartY;
+
+    // Back: swipe right starting within 30px of left edge
+    if (touchStartX <= 30 && dx > 60 && Math.abs(dy) < 60) {
+      advance(-1);
+    }
+    // Next: scroll to bottom then pull up past threshold
+    else if (pullBeyondBottom > 80) {
+      advance(1);
+    }
+
+    touchStartX = touchStartY = touchLastY = null; pullBeyondBottom = 0;
   }, { passive: true });
 });
 
