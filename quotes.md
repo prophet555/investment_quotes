@@ -429,4 +429,14 @@
 ## Phil Knight
 - Belief is irresistible.
 - When you see only problems, you're not seeing clearly.
-- If you bet on people the world has overlooked, they'll spend their lives proving you right
+- If you bet on people the world has overlooked, they'll spend their lives proving you right.
+
+## Michel De Montaigne
+- Fear is more importunate and unbearable than death
+- We do not know where death awaits, so let us wait for it everywhere. 
+
+## Cicero
+- Then fear banishes all wisdom from my heart
+
+## Mike Moritz
+-  The apples take longer to ripen than the lemons. Good companies take time to show their true value. Bad ones reveal themselves quickly.
