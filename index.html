@@ -352,7 +352,7 @@
 
   <main>
     <div class="config-warning" id="configWarning">
-      ⚠ No API key found. Copy <code>config.example.js</code> to <code>config.js</code> and add your Groq key from <strong>console.groq.com</strong>. Memos will not load until this is set.
+      ⚠ No API key found. Copy <code>config.example.js</code> to <code>config.js</code> and add your OpenRouter key from <strong>openrouter.ai/keys</strong>. Memos will not load until this is set.
     </div>
 
     <div class="quote-card" id="quoteCard">
@@ -454,7 +454,7 @@ function getQuoteAtPosition(pos) {
 let currentIndex = 0;
 let isLoading = false;
 
-// ─── GROQ API (proxied via /api/memo) ─────────────────────────────────────────
+// ─── OPENROUTER API (proxied via /api/memo) ─────────────────────────────────────────
 async function generateMemo(quote) {
   const response = await fetch('/api/memo', {
     method: 'POST',
@@ -531,7 +531,7 @@ async function showQuote(quote, pos) {
     renderMemo(memo);
   } catch(err) {
     memoLoading.style.display = 'none';
-    memoContent.innerHTML = `<div class="error-text">${err.message.includes('No API key') ? 'Add your Groq key to config.js to enable memos.' : `API error: ${err.message}`}</div>`;
+    memoContent.innerHTML = `<div class="error-text">${err.message.includes('No API key') ? 'Add your OpenRouter key to enable memos.' : `API error: ${err.message}`}</div>`;
     memoContent.classList.add('visible');
   }
 

@@ -4,7 +4,7 @@ A local web app that serves one investment quote per day with memo.
 
 ## Setup
 
-1. **Get a free Groq key** at [console.groq.com](https://console.groq.com) (no credit card required)
+1. **Get an OpenRouter key** at [openrouter.ai/keys](https://openrouter.ai/keys). Memos use only free models: `api/memo.js` fetches OpenRouter's live model list on each cold start (cached 1h), keeps models priced at $0, tries the newest first, and falls back to the next if one fails. No manual rotation needed.
 
 2. **Copy the config template:**
 
@@ -12,7 +12,7 @@ A local web app that serves one investment quote per day with memo.
    cp config.example.js config.js
    ```
 
-3. **Add your key** — open `config.js` and replace `YOUR_GROQ_KEY_HERE` with your actual key
+3. **Add your key** — open `config.js` and replace `YOUR_OPENROUTER_KEY_HERE` with your actual key
 
 4. **Open `index.html`** in your browser — that's it
 
