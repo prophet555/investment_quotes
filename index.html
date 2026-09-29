@@ -371,7 +371,7 @@
     <div class="memo-section">
       <div class="memo-label">Analyst Memo</div>
       <div class="memo-loading" id="memoLoading">
-        <span>Generating context</span>
+        <span>Generating memo</span>
         <div class="dots">
           <div class="dot"></div>
           <div class="dot"></div>
@@ -474,10 +474,6 @@ async function generateMemo(quote) {
 function renderMemo(memo) {
   const content = document.getElementById('memoContent');
   content.innerHTML = `
-    <div class="memo-block">
-      <div class="memo-block-title">Historical Context</div>
-      <div class="memo-block-text">${memo.context}</div>
-    </div>
     <div class="memo-block">
       <div class="memo-block-title">Investing Reflection</div>
       <div class="memo-block-text">${memo.reflection}</div>
